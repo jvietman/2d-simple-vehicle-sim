@@ -1,0 +1,6 @@
+- graph printing
+    - determine points to calculate on pixels that can be displayed
+- graph finding
+    - save next and previous limit in cache
+        -> when value to high or to low switch between the graphs next to eachother
+        -> you dont have to check all graphs to find the limit, just check the ones next to each other
