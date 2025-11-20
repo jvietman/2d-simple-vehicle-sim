@@ -100,6 +100,7 @@ class render:
         self._update_frames()
         
         if not x == -1:
+            pygame.draw.line(self.screen, (0, 0, 0), (0, 0), (self.size[0], 0), 20)
             pygame.draw.line(self.screen, (255, 0, 0), (int(x), 0), (int(x), 10), 5)
         
         pygame.display.update()

@@ -56,10 +56,15 @@ def run_eventhandler(events_list: list, in_async = False, run_thread = None):
             smth_happened = True if i.type == pygame.KEYDOWN or i.type == pygame.KEYUP else False
             if smth_happened:
                 if config["debug_binds"]:
-                    print(i.__dict__["key"])
+                    print("Key: "+str(i.__dict__["key"])+"   State: "+str(i.type == pygame.KEYDOWN))
                 if i.__dict__["key"] in binds:
                     # get the event you bound the key to, then set the state of event
                     events[binds[i.__dict__["key"]]] = i.type == pygame.KEYDOWN
+
+# testing values
+x = 0
+x_goal = 0
+shifting = 0
 
 now = now_second = datetime.now()
 try:
@@ -74,7 +79,32 @@ try:
         # calculate physics that happened in accumulated time
         while acc >= dt:
             # controls
-            print(events)
+            if shifting:
+                # shifting is eather -1 or 1, so this also shows direction where rev goes
+                x += 210*shifting
+                if x_goal*(shifting**2)+x*shifting < 0
+                down -1: x <= goal => goal-x >= 0
+                up 1: x >= goal => -goal+x >= 0
+            else:
+                if events["upshift"]:
+                    shifting = 1
+                    x_goal = x+(x*0.4)
+                elif events["downshift"]:
+                    shifting = -1
+                    x_goal = x-(x*0.4)
+                
+                elif events["throttle_100"]:
+                    x += 10
+                elif events["throttle_50"]:
+                    x += 5
+                elif events["brake_100"]:
+                    x -= 16
+                elif events["brake_50"]:
+                    x -= 8
+                else:
+                    x -= 5
+            if x > rev_max: x = rev_max
+            if x < 0: x = 0
             
             # physics calculation
 
@@ -91,7 +121,7 @@ try:
         
         # render frames (async)
         # render(interpol(acc / dt))
-        display.update_graph()
+        display.update_graph(x*display.graph_scale[0])
         run_eventhandler(display.get_events()) # hand over events to eventhandler
 except KeyboardInterrupt:
     # termination
