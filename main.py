@@ -35,27 +35,41 @@ running = True
 events = {}
 binds: final = {}
 # events is the thing you should use. it saves the states of the binds, example: throttle = True. Its a simple way of seeing if your event is fulfilled
-# setup binds (flip all keys with elements)
+# setup binds (flip all keys with elements, so you can find event by giving the key pressed)
 for i in config["binds"].keys():
     binds[config["binds"][i]] = str(i)
-# setup events dict
+# setup events dict where you can read out, if an event is fulfilled (if button bound to it is pressed)
 for i in config["binds"].keys():
     events[i] = False
 
-def run_eventhandler(events_list: list, in_async = False, run_thread = None):
+def run_eventhandler(events_list: list, in_async = False):
+    """**Takes a list of pygame events and sorts out the keys pressed, where the key is bound to an event and organizes them into a dictionary.**\n
+    
+    The dictionary ```binds``` holds bindings between a keyboard key and a specific event. For example the W key bound to the event of moving forward.
+    Once a key, where an event is bound to it, is pressed, the event in the "events" dictionary turns True.
+    The other way around, when you release that key, the event turns to False.\n
+    
+    **In short:** after running this method and giving it the list of pygame events, it neatly organizes the events
+    that are actually triggered in the ```events``` dictionary, where they can be easily checked by using ```events[<event>]```
+
+    Args:
+        events_list (list): List of pygame events
+        in_async (bool, optional): This is for recursion purposes only. Defaults to False.
+    """
     global events, running
     
     if not in_async:
         # restart yourself as async, so you dont hold up the rest
-        threading.Thread(target=run_eventhandler, args=(events_list, True, run_thread)).start()
+        threading.Thread(target=run_eventhandler, args=(events_list, True)).start()
     else:
         for i in events_list:
             # when closing window/ quitting, throw this to end mainloop
             if i.type == pygame.QUIT: running = False
             
+            # if key was down or up <=> if key was pressed
             smth_happened = True if i.type == pygame.KEYDOWN or i.type == pygame.KEYUP else False
             if smth_happened:
-                if config["debug_binds"]:
+                if config["debug_binds"]: # if debugging is on, print key code and state
                     print("Key: "+str(i.__dict__["key"])+"   State: "+str(i.type == pygame.KEYDOWN))
                 if i.__dict__["key"] in binds:
                     # get the event you bound the key to, then set the state of event
@@ -65,6 +79,13 @@ def run_eventhandler(events_list: list, in_async = False, run_thread = None):
 x = 0
 x_goal = 0
 shifting = 0
+
+gear_ratio = 0.4
+shift_speed = 210
+
+accel = 40
+decel = 50
+resistance = 20
 
 now = now_second = datetime.now()
 try:
@@ -81,28 +102,34 @@ try:
             # controls
             if shifting:
                 # shifting is eather -1 or 1, so this also shows direction where rev goes
-                x += 210*shifting
-                if x_goal*(shifting**2)+x*shifting < 0
-                down -1: x <= goal => goal-x >= 0
-                up 1: x >= goal => -goal+x >= 0
+                x += shift_speed*shifting
+                if x > rev_max:
+                    x = rev_max
+                    shifting = False
+                elif x < 0:
+                    x = 0
+                    shifting = False
+                elif x_goal*-shifting+x*shifting >= 0:
+                    x = x_goal
+                    shifting = False
             else:
                 if events["upshift"]:
                     shifting = 1
-                    x_goal = x+(x*0.4)
+                    x_goal = x+(x*gear_ratio)
                 elif events["downshift"]:
                     shifting = -1
-                    x_goal = x-(x*0.4)
+                    x_goal = x-(x*gear_ratio)
                 
                 elif events["throttle_100"]:
-                    x += 10
+                    x += accel
                 elif events["throttle_50"]:
-                    x += 5
+                    x += accel/2
                 elif events["brake_100"]:
-                    x -= 16
+                    x -= decel
                 elif events["brake_50"]:
-                    x -= 8
+                    x -= decel/2
                 else:
-                    x -= 5
+                    x -= resistance
             if x > rev_max: x = rev_max
             if x < 0: x = 0
             
