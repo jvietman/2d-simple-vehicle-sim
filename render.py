@@ -9,6 +9,9 @@ class render:
         # power curve rendering
         self.graph_scale = (1, 1)
         
+        # pygame events
+        # self.events = None
+        
         # performance debugging
         self._frames = 0 # counted frames in timeframe
         self._fps_short = 0 # fps counted in 0.2 seconds
@@ -61,8 +64,21 @@ class render:
         self.graph_scale = (w, size[1] / max)
         
     def _update_frames(self):
-        # every 0.2 seconds, the short fps gets calculated with the previous long fps. after a full second you get the high accuracy value.
-        # this is for quicker updates without really losing accuracy
+        """Updates the framerate value.
+        
+        Framerate is safed in the ```fps``` variable of this class. The fps value is rounded to the first decimal place.
+        
+        There are two types of fps values here:
+        - fps short: quick, but low accuracy value: the frames rendered in 0.2 seconds
+        - fps long: slow, but high accuracy value: the frames rendered in 1 second
+        
+        The fps is a combination of the short and long fps values. Depending on how many short fps youve counted, thats the percentage of whats added from short fps and what from long fps:
+            fps = long_fps*(1-(0.2*short_counted)) + short_fps
+        
+        For example, if the short fps was counted 3 times, that means we have the fps value for 0.6 seconds, we add only 40% of the long fps.
+        This results in a smooth, semi-accurate but quicker fps value.
+        
+        """
         self._frames += 1
         
         elapsed = (datetime.now()-self._fps_begin).total_seconds()
@@ -75,17 +91,15 @@ class render:
             self._fps_short = self._frames = 0
             self._fps_begin = datetime.now()
         
-        self.fps = self._fps_prev*(1-(0.2*self._fps_short_counted)) + self._fps_short
+        self.fps = round(self._fps_prev*(1-(0.2*self._fps_short_counted)) + self._fps_short, 1)    
+    
+    def get_events(self) -> list[pygame.event.EventType]:
+        return pygame.event.get()
         
-    def update_graph(self, x=-1) -> pygame.event:
+    def update_graph(self, x=-1):
         self._update_frames()
-        e = pygame.event.poll()
-        
-        if e.type == pygame.QUIT:
-            exit()
         
         if not x == -1:
             pygame.draw.line(self.screen, (255, 0, 0), (int(x), 0), (int(x), 10), 5)
         
-        pygame.display.flip()
-        return e
+        pygame.display.update()

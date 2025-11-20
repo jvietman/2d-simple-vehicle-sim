@@ -1,0 +1,7 @@
+{
+    "debug_binds": false,
+    "binds": {
+        "throttle_100": 102,
+        "throttle_50": 100
+    }
+}

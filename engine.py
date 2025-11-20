@@ -17,6 +17,18 @@ class engine:
         self.throttle = 0
     
     def _point_at_graph(self, x: float) -> float:
+        """Calculates the point x on one of the functions, where the x value is in.
+        
+        The power curve is realized as multiple functions that create one big function.
+        The functions are seperated (when one function begins and where it ends) by using maximum values.
+        This method automatically decided which function to choose to calculate the value.
+
+        Args:
+            x (float): point on graph
+
+        Returns:
+            float: calculated y value of one of the functions, where x is in
+        """
         if x > self._graphs_limits[-1]:
             x = self._graphs_limits[-1]
         elif x < 0:
@@ -25,6 +37,7 @@ class engine:
         f = [i for i in range(len(self._graphs_limits)+1) if x > ([-1]+self._graphs_limits)[i]][-1]
         return eval(self._graphs[f].replace("x", str(x)))
     
+    # depricated, this is for rising or falling revs
     def update_revs(self, throttle: float, resistance) -> float:
         res_eng = self._res_eng*(((self.revs-self._revs_idle)/self._revs_idle) if self.revs < self._revs_idle*2 else 1)
         self.revs += self._revs_speed*(throttle*(1+res_eng)-res_eng)
