@@ -80,7 +80,7 @@ x = 0
 x_goal = 0
 shifting = 0
 
-gear_ratio = 0.4
+gear_ratio = 0.3
 shift_speed = 210
 
 accel = 40
@@ -115,10 +115,10 @@ try:
             else:
                 if events["upshift"]:
                     shifting = 1
-                    x_goal = x+(x*gear_ratio)
+                    x_goal = x+(rev_max*gear_ratio)
                 elif events["downshift"]:
                     shifting = -1
-                    x_goal = x-(x*gear_ratio)
+                    x_goal = x-(rev_max*gear_ratio)
                 
                 elif events["throttle_100"]:
                     x += accel
