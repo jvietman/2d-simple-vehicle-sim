@@ -7,9 +7,8 @@ import threading, pygame, json
 # define engine
 rev_range = [5300, 5800]
 rev_max = 6500
-engine_resistance = 0.1
 
-motor = engine(["(5.25*sqrt(x))-100", "(5.25*sqrt("+str(rev_range[0])+"))-100", "-0.0002*(x-"+str(rev_range[1])+")**2+(5.25*sqrt("+str(rev_range[0])+"))-100"], [rev_range[0], rev_range[1], rev_max], 1200, engine_resistance)
+motor = engine(["(5.25*sqrt(x))-100", "(5.25*sqrt("+str(rev_range[0])+"))-100", "-0.0002*(x-"+str(rev_range[1])+")**2+(5.25*sqrt("+str(rev_range[0])+"))-100"], [rev_range[0], rev_range[1], rev_max], 1200, 2)
 
 # define renderer
 size = (1000, 500)
@@ -77,7 +76,16 @@ def run_eventhandler(events_list: list, in_async = False):
                     events[binds[i.__dict__["key"]]] = i.type == pygame.KEYDOWN
 
 # testing values
-throttle = brake = 0
+x = 0
+x_goal = 0
+shifting = 0
+
+gear_ratio = 0.3
+shift_speed = 210
+
+accel = 40
+decel = 50
+resistance = 20
 
 now = now_second = datetime.now()
 try:
@@ -91,21 +99,41 @@ try:
         
         # calculate physics that happened in accumulated time
         while acc >= dt:
-            # controls module
-            if events["throttle_100"]:
-                throttle = 1
-            elif events["throttle_50"]:
-                throttle = 0.7
-            elif events["brake_50"]:
-                throttle = 0.5
-            elif events["brake_100"]:
-                throttle = 0.2
+            # controls
+            if shifting:
+                # shifting is eather -1 or 1, so this also shows direction where rev goes
+                x += shift_speed*shifting
+                if x > rev_max:
+                    x = rev_max
+                    shifting = False
+                elif x < 0:
+                    x = 0
+                    shifting = False
+                elif x_goal*-shifting+x*shifting >= 0:
+                    x = x_goal
+                    shifting = False
             else:
-                throttle = 0
+                if events["upshift"]:
+                    shifting = 1
+                    x_goal = x+(rev_max*gear_ratio)
+                elif events["downshift"]:
+                    shifting = -1
+                    x_goal = x-(rev_max*gear_ratio)
+                
+                elif events["throttle_100"]:
+                    x += accel
+                elif events["throttle_50"]:
+                    x += accel/2
+                elif events["brake_100"]:
+                    x -= decel
+                elif events["brake_50"]:
+                    x -= decel/2
+                else:
+                    x -= resistance
+            if x > rev_max: x = rev_max
+            if x < 0: x = 0
             
-            # physics module calculations
-            motor.update_revs(throttle, 0.6)
-            # when braking: motor.update_revs(1, x), x is resistance coming from braking
+            # physics calculation
 
             actions += 1
             acc -= dt
@@ -120,7 +148,7 @@ try:
         
         # render frames (async)
         # render(interpol(acc / dt))
-        display.update_graph(motor.revs*display.graph_scale[0])
+        display.update_graph(x*display.graph_scale[0])
         run_eventhandler(display.get_events()) # hand over events to eventhandler
 except KeyboardInterrupt:
     # termination

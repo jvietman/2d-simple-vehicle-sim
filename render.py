@@ -19,6 +19,11 @@ class render:
         self._fps_begin = datetime.now() # start time of counting for 0.2 seconds
         self._fps_prev = 0
         self.fps = 0
+        
+        # graph display, temporary values
+        self._graph_y_size = 10
+        self._graph_trail_length = 100
+        self._tmp_graph_prev = [(-1, -1)]
 
     def power_curve(self, e: engine, step = 1):
         """Calculate and render powercurve.
@@ -96,11 +101,22 @@ class render:
     def get_events(self) -> list[pygame.event.EventType]:
         return pygame.event.get()
         
-    def update_graph(self, x=-1):
+    def update_graph(self, x=-1, y=-1):
         self._update_frames()
         
+        prev = self._tmp_graph_prev[0]
         if not x == -1:
             pygame.draw.line(self.screen, (0, 0, 0), (0, 0), (self.size[0], 0), 20)
             pygame.draw.line(self.screen, (255, 0, 0), (int(x), 0), (int(x), 10), 5)
+        if not y == -1:
+            px, py = x-self._graph_y_size/2, self.size[1]-(y-self._graph_y_size/2)*self.graph_scale[1]
+            pygame.draw.rect(self.screen, (255, 0, 0), pygame.Rect(px, py, self._graph_y_size, self._graph_y_size), self._graph_y_size)
+            
+        
+        self._tmp_graph_prev.append((x, y))
+        if len(self._tmp_graph_prev) > self._graph_trail_length:
+            if not prev[1] == -1:
+                pygame.draw.rect(self.screen, (0, 0, 0), pygame.Rect(prev[0]-self._graph_y_size/2, self.size[1]-((prev[1]-self._graph_y_size/2)*self.graph_scale[1]), self._graph_y_size, self._graph_y_size), self._graph_y_size)
+            del prev
         
         pygame.display.update()
