@@ -1,55 +1,35 @@
-from physics import physics
 from engine import engine
-from render import render, vehicle
+from render import render
 from datetime import datetime
 from typing import final
-import threading, pygame, json, os
+import threading, pygame, json
 
-# load configs
-configs = {}
-with open("config.json", "r") as f:
-    config = json.load(f)
-    f.close()
+# define engine
+rev_range = [5300, 5800]
+rev_max = 6500
+engine_resistance = 0.1
 
-with open("session.json", "r") as f:
-    configs["session"] = json.load(f)
-    f.close()
+motor = engine(["(5.25*sqrt(x))-100", "(5.25*sqrt("+str(rev_range[0])+"))-100", "-0.0002*(x-"+str(rev_range[1])+")**2+(5.25*sqrt("+str(rev_range[0])+"))-100"], [rev_range[0], rev_range[1], rev_max], 1200, engine_resistance)
 
-with open("vehicles/engines.json", "r") as f:
-    configs["engines"] = json.load(f)
-    f.close()
-    
-with open("vehicles/transmissions.json", "r") as f:
-    configs["transmissions"] = json.load(f)
-    f.close()
+# define renderer
+size = (1000, 500)
+step = 1
+display = render(size)
 
-# setup physics simulation
-sim = physics()
+display.set_graph_scale(motor, size, step)
+display.power_curve(motor, step)
 
-# load engine
-# load car
-with open("vehicles/"+configs["session"]["vehicle"]+"/vehicle.json", "r") as f:
-    vehicledata = json.load(f)
-    f.close()
-
-cur_engine = configs["engines"][vehicledata["engine"]]
-cur_trans = configs["transmissions"][vehicledata["transmission"]]
-motor = engine(cur_engine["functions"], cur_engine["limits"], cur_engine["idle_revs"], cur_engine["resistance"])
-
-# setup renderer
-display = render(tuple(config["resolution"]))
-display.add_object("main", vehicle(display.size, os.getcwd()+"/vehicles/"+configs["session"]["vehicle"], [0, 0], 0)) # main vehicle object
-# display.add_object("map", obj(display.size, os.getcwd()+"/vehicles/city carpet", [-100, -100], (1201, 801)))
-
-# mainloop handler values
+# handler values
 acc = 0
-hz = config["hertz"]
+hz = 100
 dt = 1/hz #100hz
 actions = 0
-# "run_thread" is for terminating loops in threads
+with open("config.json") as f:
+    config = json.load(f)
+    f.close()
+# run thread is for terminating loops in threads
 run_thread = threading.Event()
 run_thread.set()
-
 
 # events
 running = True
@@ -88,31 +68,16 @@ def run_eventhandler(events_list: list, in_async = False):
             if i.type == pygame.QUIT: running = False
             
             # if key was down or up <=> if key was pressed
-            if i.type == pygame.KEYDOWN or i.type == pygame.KEYUP:
+            smth_happened = True if i.type == pygame.KEYDOWN or i.type == pygame.KEYUP else False
+            if smth_happened:
+                if config["debug_binds"]: # if debugging is on, print key code and state
+                    print("Key: "+str(i.__dict__["key"])+"   State: "+str(i.type == pygame.KEYDOWN))
                 if i.__dict__["key"] in binds:
                     # get the event you bound the key to, then set the state of event
                     events[binds[i.__dict__["key"]]] = i.type == pygame.KEYDOWN
 
-### start of testing values ###
-steer = 0
-speed = 0
-brake = 0
-reverse = 0
-
-pos = (0, 0)
-rotation = 0
-
-# setup
-display.cam_zoom = 40
-display.cam_pos = [0, 0]
-
-# config
-turnspeed = 0.5
-reversespeed = 0.05
-accel = 0.0015
-decel = 0.0003
-brakeforce = 0.0012
-### end of testing values ###
+# testing values
+throttle = brake = 0
 
 now = now_second = datetime.now()
 try:
@@ -128,55 +93,20 @@ try:
         while acc >= dt:
             # controls module
             if events["throttle_100"]:
-                motor.throttle = 1
+                throttle = 1
             elif events["throttle_50"]:
-                motor.throttle = 0.5
-            else:
-                motor.throttle = 0
-            
-            if events["brake_100"]:
-                brake = 1
+                throttle = 0.7
             elif events["brake_50"]:
-                brake = 0.5
+                throttle = 0.5
+            elif events["brake_100"]:
+                throttle = 0.2
             else:
-                brake = 0
-                
-            if events["left_100"]:
-                steer = -1
-            elif events["left_50"]:
-                steer = -0.5
-            elif events["right_50"]:
-                steer = 0.5
-            elif events["right_100"]:
-                steer = 1
-            else:
-                steer = 0
+                throttle = 0
             
-            # engine calculations
-            ## calculate resistence with physics module (breaking, environmental factors)
-            ## when braking: motor.update_revs(1, x), x is resistance coming from braking
-            # calculate engine revs
-            motor.update_revs(0)
-            # calculate actual output (through transmission, with all resistences)
-            ## motor.transmission method to be implemented
-            
-            # physics calculations
-            ## calculate next state
-            ## state = sim.next(motor)
-            if motor.throttle:
-                speed += accel*motor.throttle
-            elif brake and speed > 0:
-                speed -= brakeforce*brake
-            elif speed > 0:
-                speed -= decel
-            if not speed > 0 and not motor.throttle:
-                if brake:
-                    speed = -reversespeed*brake
-                else:
-                    speed = 0
-            
-            pos, rotation = display.move_object_straight("main", speed), display.rotate_object("main", turnspeed*steer)
-            
+            # physics module calculations
+            motor.update_revs(throttle, 0.6)
+            # when braking: motor.update_revs(1, x), x is resistance coming from braking
+
             actions += 1
             acc -= dt
             acc += ((datetime.now()-now).total_seconds()) - elapsed
@@ -189,8 +119,8 @@ try:
             now_second = datetime.now()
         
         # render frames (async)
-        ## render inbetween states, async: render(interpol(acc / dt))
-        display.render()
+        # render(interpol(acc / dt))
+        display.update_graph(motor.revs*display.graph_scale[0])
         run_eventhandler(display.get_events()) # hand over events to eventhandler
 except KeyboardInterrupt:
     # termination

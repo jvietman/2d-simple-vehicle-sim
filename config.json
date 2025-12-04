@@ -1,11 +1,25 @@
 {
-    "debug_binds": false,
+    "resolution": [1000, 500], 
+
     "binds": {
         "throttle_100": 102,
         "throttle_50": 100,
         "brake_50": 115,
         "brake_100": 97,
+
+        "left_100": 106,
+        "left_50": 107,
+        "right_50": 108,
+        "right_100": 246,
+        
+        "clutch": 114,
+        "clutch_bite": 101,
+
         "downshift": 110,
         "upshift": 109
-    }
+    },
+
+
+
+    "hertz": 100
 }

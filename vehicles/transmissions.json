@@ -1,0 +1,11 @@
+{
+    "cup_seq": {
+        "gears": [
+            0.003
+        ],
+        "reverse": 0.002,
+
+        "autoclutch": true,
+        "bitepoint": 0.38
+    }
+}

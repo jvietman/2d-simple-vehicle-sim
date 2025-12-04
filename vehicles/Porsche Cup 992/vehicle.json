@@ -1,0 +1,18 @@
+{
+    "engine": "cup_H6_4L",
+    "transmission": "cup_seq",
+
+    "textures": {
+        "default": "default.png"
+    },
+
+    "drive": "RWD",
+
+    "weight": 1260,
+    "length": 4.585,
+    "width": 2,
+    
+    "axle_width": 1.920,
+    "axle_front_pos": 0,
+    "wheelbase": 2.459
+}

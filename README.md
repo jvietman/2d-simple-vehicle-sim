@@ -22,6 +22,43 @@ Semi-realistic dynamic vehicle simulator in top-down 2D space.
             - [ ] rev up on throttle percentage
             - [ ] engine resistance
             - [ ] environmental resistance, vehicle momentum
+                - [ ] clutch
+                - [ ] accelerate, decelerate
+                - [ ] gears
+- [X] keybinder (for getting pressed keys to set as binds)
+- [ ] simulation
+    - [ ] configs
+        - [ ] session
+        - [ ] car
+            - [ ] engines
+            - [ ] transmissions
+        - [ ] tires
+        - [ ] maps
+    - [ ] renderer
+        - [ ] load objects (with textures and values)
+        - [ ] set units and scales
+        - [ ] render objects
+        - [ ] render states
+            - [ ] add states to render queue
+            - [ ] render states from queue
+            - [ ] render states inbetween states, async
+    - [ ] physics
+        - [ ] take inputs
+        - [ ] calculate next state
+        - [ ] return state
+    - [ ] controls
+        - [ ] calculate input behaviour (smooth/ sharp steering, slow trailing, threshold braking, etc.)
+
+1. [X] Fix scaling (one zoom value)
+    - [X] zoom for height, width scale automatically calculated
+2. [X] Fix object scaling
+3. [ ] Fix out of cam (relative pos of cam and position of car)
+4. [ ] obj and dann vererben
+    - vehicle
+    - map
+5. [ ] Fix rotation
+6. [X] Basic movement
+7. Advanced movement (front wheels steering and driving)
 
 ### Performance fixes
 - graph printing
@@ -43,6 +80,10 @@ Semi-realistic dynamic vehicle simulator in top-down 2D space.
     => try implementing check, if taking too long to generate 0.2, then just print 1 second fps
 - [ ] get events all the time, dont miss events because you calculate some bs
     => async events.get()?
+- [ ] rendering problem
+    - how do sprites work?
+    - what is the order all the things are executed?
+    - fix code in mainloop, check objects list etc
 
 ### Update Revs
 How do the revs update? How do they increase and decrease over time with certain inputs?
@@ -53,4 +94,3 @@ Properties
 - [X] Powerkurve Höhe (Torque) abhängig von wie viel % throttle
 - [ ] mehr torque = schnelleres hochrevven
 - [ ] höhere resistance bei hohen Drehzahlen (engine breaking)
-
