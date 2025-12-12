@@ -2,7 +2,23 @@ from datetime import datetime
 import pygame, engine, json, math, os
 
 class obj(pygame.sprite.Sprite):
+    """**Represents an object in pygame.**\n
+    
+    This class holds data like textures and position data and provides an update method which ultimately renders the sprite onto the screen.\n
+    An object is not just simply rendered somewhere on the screen. The screen doesnt represent the whole world,
+    but rather there is a camera that displayes a certain part of an infinite world (of course not infinite but until you reach the integer limit).\n
+    Scaling and position of an object on screen is determined by the renderer, but the update method provided here ultimately clears the last sprite
+    and render the new sprite with its current texture and rotation on the screen.
+    """
     def __init__(self, win_resolution: tuple, textures: dict, pos = [0, 0], size = [1, 1], rotation = 0):
+        """
+        Args:
+            win_resolution (tuple): resolution of the whole window ```(width, height)```
+            textures (dict): dictionary of texture names as keys and values as location of the texture file, (default has to be always included) ```{"default": "default.png"}```
+            pos (list, optional): x and y position in world, in units. Defaults to [0, 0].
+            size (list, optional): width and height of object in world, in units. Defaults to [1, 1].
+            rotation (int, optional): rotation of object in dregrees. Defaults to 0.
+        """
         # super class constructor
         pygame.sprite.Sprite.__init__(self)
         self.res = win_resolution
@@ -26,27 +42,81 @@ class obj(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
     
     def update(self, pos: tuple, size: tuple, empty = False):
+        """Render sprite on screen.\n
+        
+        Parameter values usually provided be the renderer, which converts objects size and position from units to pixels to be printed on screen.
+
+        Args:
+            pos (tuple): x and y position on screen, in pixels
+            size (tuple): width and height on screen, in pixels
+            empty (bool, optional): if object is visible on screen, decides if worth rendering. Defaults to False.
+        """
         self.image = pygame.Surface(self.res, pygame.SRCALPHA)
         if not empty:
-            # when rotating image, it tries to resize it to fit into the surface. thats why a neat calculation happens in order to resize the image depending on rotation.
-            n = 45-abs((self.rotation % 90) - 45)
-            p = n/45
-            d = math.sqrt(size[0]**2+size[1]**2)
-            # tsize = (size[0]*max(abs(math.sin(self.rotation)), abs(math.cos(self.rotation)))**-1, size[1]**max(abs(math.sin(self.rotation)), abs(math.cos(self.rotation)))**-1)
-            tsize = (size[0], size[1])
-            self.image.blit(pygame.transform.scale(pygame.transform.rotate(self._textures[self.state], 360-self.rotation), tsize), (pos[0]-tsize[0]/2, pos[1]-tsize[1]/2))
+            # pygame does this weird thing that, instead of normaly rotating, it rotates image and resizes to fit entire image into frame
+            # here I try to reverse ts
+            # n = 45-abs((self.rotation % 90) - 45)
+            # p = n/45
+            # d = math.sqrt(size[0]**2+size[1]**2)
+            scaled = pygame.transform.scale(self._textures[self.state], size)
+            rotated = pygame.transform.rotate(scaled, 360-self.rotation)
+            frame = max(size[0], size[1])
+            tpos = (pos[0]+(frame-rotated.get_width())/2, pos[1]+(frame-rotated.get_height())/2)
+            self.image.blit(rotated, tpos)
             self.rect = self.image.get_rect()
 
 class vehicle(obj):
     def __init__(self, win_resolution: tuple, working_directory: str, pos = [0, 0], rotation = 0):
+        """Child-class of obj specifically for displaying vehicles.
+
+        Args:
+            win_resolution (tuple): resolution of the whole window ```(width, height)```
+            working_directory (str): path to vehicle folder that holds textures and vehicle.json
+            pos (list, optional): x and y position in world, in units. Defaults to [0, 0].
+            rotation (int, optional): rotation of object in dregrees. Defaults to 0.
+        """
         # super class constructor
-        self.res = win_resolution
         with open(working_directory+"/vehicle.json") as f:
             self.data = json.load(f)
             f.close()
         
         os.chdir(working_directory)
         obj.__init__(self, win_resolution, self.data["textures"], pos, (self.data["width"], self.data["length"]), rotation)
+
+class map(obj):
+    def __init__(self, win_resolution: tuple, maptexture: str, size: list):
+        """Child-class of obj specifically for displaying a map.
+        
+        The center of the map is the origin, meaning x,y = 0.\n
+        This means right side of the map = +x and left side = -x. For y thats top = +y and bottom = -y. 
+
+        Args:
+            win_resolution (tuple): resolution of the whole window ```(width, height)```
+            maptexture (str): filepath of texture
+            size (list): size of map, in units
+        """
+        # super class constructor
+        obj.__init__(self, win_resolution, {"default": maptexture}, [0, 0], size, 0)
+        
+    def update(self, size: tuple, pos: tuple, scale: tuple):
+        """Render map pos and size on screen.\n
+
+        Args:
+            size (tuple): width and height of units captured on camera
+            pos (tuple): topleft position of camera on map
+            scale (tuple): x and y scale from camera zoom (units -> pixels)
+        """
+
+        # value that gets subtracted from the positions to match the rules of the map (center origin)
+        # left side = +x & right side = -x
+        # top side = +y & bottom side = -y
+        # center (origin) of map, where x,y = 0: x = width/2 & y = height/2
+        origin = (self.size[0]/2, self.size[1]/2)
+        # camera position for origin on map
+        cam_on_map = ((pos[0]-origin[0])*scale[0], (pos[1]-origin[1])*scale[1])
+        
+        self.image.blit(pygame.transform.scale(self._textures["default"], (size[0]*scale[0], size[1]*scale[1])), cam_on_map, (cam_on_map[0]-origin[0], cam_on_map[1]-origin[1], cam_on_map[0]+origin[0]+size[0], cam_on_map[1]+origin[1]+size[1]))
+        self.rect = self.image.get_rect()
 
 def move_direction(pos, direction_deg, distance) -> list:
     """
@@ -229,8 +299,6 @@ class render:
     
     def render(self):
         self._update_frames()
-                
-        self.screen.fill((255, 255, 255))
 
         scale = (self.size[0] / (self.cam_zoom*self.ratio), self.size[1] / self.cam_zoom)
         # for i in self.objects.values():
@@ -242,10 +310,14 @@ class render:
             
             # i._rect.x, i._rect.y = ((i.pos[0]-self.cam_pos[0])*scale[0], (i.pos[1]-self.cam_pos[1])*scale[1])
         
-        for i in self.objects.values():
-            size = ((i.size[0]*scale[0])*self.ratio, i.size[1]*scale[1])
-            pos = ((i.pos[0]-self.cam_pos[0]+(self.size[0]/scale[0])/2)*scale[0], (i.pos[1]-self.cam_pos[1]+(self.size[1]/scale[1])/2)*scale[1])
-            outside_cam = pos[0] < -size[0] or pos[0]-size[0]/2 > self.size[0] or -size[1] > pos[1] or pos[1]-size[1]/2 > self.size[1]
-            i.update(pos, size, outside_cam)
+        for j in self.objects.keys():
+            i = self.objects[j]
+            if j == "map":
+                i.update(((self.cam_zoom*self.ratio), self.cam_zoom), self.cam_pos, scale)
+            else:
+                size = ((i.size[0]*scale[0]), i.size[1]*scale[1])
+                pos = ((i.pos[0]-self.cam_pos[0]+(self.size[0]/scale[0])/2)*scale[0], (i.pos[1]-self.cam_pos[1]+(self.size[1]/scale[1])/2)*scale[1])
+                outside_cam = pos[0] < -size[0] or pos[0]-size[0]/2 > self.size[0] or -size[1] > pos[1] or pos[1]-size[1]/2 > self.size[1]
+                i.update(pos, size, outside_cam)
         self.all_sprites.draw(self.screen)
         pygame.display.update()

@@ -52,13 +52,17 @@ Semi-realistic dynamic vehicle simulator in top-down 2D space.
 1. [X] Fix scaling (one zoom value)
     - [X] zoom for height, width scale automatically calculated
 2. [X] Fix object scaling
-3. [ ] Fix out of cam (relative pos of cam and position of car)
-4. [ ] obj and dann vererben
+    - [ ] vehicle size is not image size
+3. [X] Fix out of cam (relative pos of cam and position of car)
+4. [ ] obj class that others inherit
     - vehicle
     - map
-5. [ ] Fix rotation
-6. [X] Basic movement
-7. Advanced movement (front wheels steering and driving)
+5. [ ] map
+    - [X] display map
+    - [ ] fix zooming and position  
+6. [ ] Fix rotation
+7. [X] Basic movement
+8. [ ] Advanced movement (front wheels steering and driving)
 
 ### Performance fixes
 - graph printing
