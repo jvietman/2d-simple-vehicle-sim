@@ -38,9 +38,9 @@ motor = engine(cur_engine["functions"], cur_engine["limits"], cur_engine["idle_r
 
 # setup renderer
 display = render(tuple(config["resolution"]))
-display.add_object("map", map(display.size, "city_carpet.jpg", [1201, 801])) # main vehicle object
+display.add_object("map", map(display.size, "city_carpet.jpg", [400, 250])) # main vehicle object
+# display.add_object("map", map(display.size, "grid.png", [500, 250])) # main vehicle object
 display.add_object("main", vehicle(display.size, os.getcwd()+"/vehicles/"+configs["session"]["vehicle"], [0, 0], 0)) # main vehicle object
-# display.add_object("map", obj(display.size, os.getcwd()+"/vehicles/city carpet", [-100, -100], (1201, 801)))
 
 # mainloop handler values
 acc = 0
@@ -104,7 +104,7 @@ pos = (0, 0)
 rotation = 0
 
 # setup
-display.cam_zoom = 1200
+display.cam_zoom = 50
 display.cam_pos = [0, 0]
 
 # config
@@ -112,7 +112,7 @@ turnspeed = 0.5
 reversespeed = 0.05
 accel = 0.0015
 decel = 0.0003
-brakeforce = 0.0013
+brakeforce = 0.0016
 ### end of testing values ###
 
 now = now_second = datetime.now()

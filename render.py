@@ -47,19 +47,13 @@ class obj(pygame.sprite.Sprite):
         Parameter values usually provided be the renderer, which converts objects size and position from units to pixels to be printed on screen.
 
         Args:
-            pos (tuple): x and y position on screen, in pixels
+            pos (tuple): x and y position on screen (center origin), in pixels
             size (tuple): width and height on screen, in pixels
             empty (bool, optional): if object is visible on screen, decides if worth rendering. Defaults to False.
         """
         self.image = pygame.Surface(self.res, pygame.SRCALPHA)
         if not empty:
-            # pygame does this weird thing that, instead of normaly rotating, it rotates image and resizes to fit entire image into frame
-            # here I try to reverse ts
-            # n = 45-abs((self.rotation % 90) - 45)
-            # p = n/45
-            # d = math.sqrt(size[0]**2+size[1]**2)
-            scaled = pygame.transform.scale(self._textures[self.state], size)
-            rotated = pygame.transform.rotate(scaled, 360-self.rotation)
+            rotated = pygame.transform.rotate(pygame.transform.scale(self._textures[self.state], size), 360-self.rotation)
             frame = max(size[0], size[1])
             tpos = (pos[0]+(frame-rotated.get_width())/2, pos[1]+(frame-rotated.get_height())/2)
             self.image.blit(rotated, tpos)
@@ -106,16 +100,21 @@ class map(obj):
             pos (tuple): topleft position of camera on map
             scale (tuple): x and y scale from camera zoom (units -> pixels)
         """
-
+        
+        self.image = pygame.Surface(self.res, pygame.SRCALPHA)
         # value that gets subtracted from the positions to match the rules of the map (center origin)
         # left side = +x & right side = -x
         # top side = +y & bottom side = -y
         # center (origin) of map, where x,y = 0: x = width/2 & y = height/2
         origin = (self.size[0]/2, self.size[1]/2)
-        # camera position for origin on map
-        cam_on_map = ((pos[0]-origin[0])*scale[0], (pos[1]-origin[1])*scale[1])
         
-        self.image.blit(pygame.transform.scale(self._textures["default"], (size[0]*scale[0], size[1]*scale[1])), cam_on_map, (cam_on_map[0]-origin[0], cam_on_map[1]-origin[1], cam_on_map[0]+origin[0]+size[0], cam_on_map[1]+origin[1]+size[1]))
+        # camera position on map from origin
+        cam_on_map = ((-pos[0]-origin[0]+size[0]/2)*scale[0], (-pos[1]-origin[1]+size[1]/2)*scale[1])
+        
+        # the frame, which units are visible to cam
+        display_size = (self.size[0]*scale[0], self.size[1]*scale[1]) # first calculate whats visible, units -> pixels
+        
+        self.image.blit(pygame.transform.scale(self._textures["default"], display_size), cam_on_map, (0, 0, display_size[0], display_size[1]))
         self.rect = self.image.get_rect()
 
 def move_direction(pos, direction_deg, distance) -> list:
