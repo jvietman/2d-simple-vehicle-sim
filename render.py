@@ -40,6 +40,9 @@ class obj(pygame.sprite.Sprite):
         self.image.blit(self._textures[self.state], pos)
         
         self.rect = self.image.get_rect()
+        
+    def _scaled(self, tuple: tuple, scale: tuple):
+        return (tuple[0]*scale[0], tuple[1]*scale[1])
     
     def update(self, pos: tuple, size: tuple, empty = False):
         """Render sprite on screen.\n
@@ -77,8 +80,9 @@ class vehicle(obj):
         os.chdir(working_directory)
         obj.__init__(self, win_resolution, self.data["textures"], pos, (self.data["width"], self.data["length"]), rotation)
 
+
 class map(obj):
-    def __init__(self, win_resolution: tuple, maptexture: str, size: list, chunksize: int):
+    def __init__(self, win_resolution: tuple, maptexture: str, size: list, chunksize: int, tolerance = 5):
         """Child-class of obj specifically for displaying a map.
         
         The center of the map is the origin, meaning x,y = 0.\n
@@ -88,22 +92,27 @@ class map(obj):
             win_resolution (tuple): resolution of the whole window ```(width, height)```
             maptexture (str): filepath of texture
             size (list): size of map, in units
+            chunksize (int): width and height of a chunk in units
+            tolerance (int, optional): tolerance at topleft and bottomright corner of camera when calculating visible chunks. Defaults to 0.
         """
         # super class constructor
         obj.__init__(self, win_resolution, {"default": maptexture}, [0, 0], size, 0)
         
         # split into chunks
         self.chunksize = chunksize
+        self.tolerance = tolerance
+        chunksize_in_pixels = max(win_resolution[0]/(size[0]/chunksize), win_resolution[1]/(size[1]/chunksize))
+        print(chunksize_in_pixels)
         chunkamount = (round(size[0]/chunksize), round(size[1]/chunksize)) # amount fitting into width and height
         self.chunks = []
         # create surfaces for each chunk
-        for i in range(chunkamount[1]):
+        for y in range(chunkamount[1]):
             self.chunks.append([])
-            for j in range(chunkamount[0]):
+            for x in range(chunkamount[0]):
                 # crop track to fit chunk
-                self.chunks[-1].append(pygame.Surface((chunksize, chunksize)))
-                self.chunks[-1][-1].blit(self._textures["default"], (chunksize*j, chunksize*i))
-        
+                self.chunks[-1].append(pygame.Surface((chunksize_in_pixels, chunksize_in_pixels)))
+                self.chunks[-1][-1].blit(self._textures["default"], (-(chunksize_in_pixels*x), -(chunksize_in_pixels*y)))
+
     def update(self, size: tuple, pos: tuple, scale: tuple):
         """Render map pos and size on screen.\n
 
@@ -112,31 +121,40 @@ class map(obj):
             pos (tuple): topleft position of camera on map
             scale (tuple): x and y scale from camera zoom (units -> pixels)
         """
-        
-        # reset surface to blit on
-        self.image = pygame.Surface(self.res)
-        
+                
         # value that gets subtracted from the positions to match the rules of the map (center origin)
         # left side = +x & right side = -x
         # top side = +y & bottom side = -y
         # center (origin) of map, where x,y = 0: x = width/2 & y = height/2
         origin = (self.size[0]/2, self.size[1]/2)
         
-        # get chunks that are visible
-        chunk_topleft = ((pos[0]-origin[0])/self.chunksize, (pos[1]-origin[1])/self.chunksize)
-        chunk_bottomright = (int(chunk_topleft[0]+pos[0]/self.chunksize), int(chunk_topleft[1]+pos[1]/self.chunksize))
-        chunk_topleft = (int(chunk_topleft[0]), int(chunk_topleft[1]))
-        print(str(chunk_topleft)+" "+str(chunk_bottomright))
-        
-        # blit chunks on surface
-        
         # camera position on map from origin
-        cam_on_map = ((-pos[0]-origin[0]+size[0]/2)*scale[0], (-pos[1]-origin[1]+size[1]/2)*scale[1])
+        cam_on_map = (-pos[0]-origin[0]+size[0]/2, -pos[1]-origin[1]+size[1]/2)
+        
+        # get chunks that are visible
+        chunk_topleft = ((-cam_on_map[0]-self.tolerance)/self.chunksize, (-cam_on_map[1]-self.tolerance)/self.chunksize)
+        chunk_bottomright = (int(chunk_topleft[0]+(size[0]+self.tolerance)/self.chunksize), int(chunk_topleft[1]+(size[1]+self.tolerance)/self.chunksize))
+        chunk_topleft = (int(chunk_topleft[0]), int(chunk_topleft[1]))
+        # print(str(chunk_topleft)+" "+str(chunk_bottomright))
+        
+        # blit chunks on surface 
+        chunk_on_screen = (self.chunksize*scale[0], self.chunksize*scale[1])
+        # print(cam_on_map)
+        for x in range(chunk_bottomright[0]-chunk_topleft[0]+1):
+            for y in range(chunk_bottomright[1]-chunk_topleft[1]+1):
+                try:
+                    t = self.chunks[chunk_topleft[1]+y][chunk_topleft[0]+x]
+                    self.image.blit(pygame.transform.scale(t, chunk_on_screen), self._scaled((cam_on_map[0]+self.chunksize*(chunk_topleft[0]+x), cam_on_map[1]+self.chunksize*(chunk_topleft[1]+y)), scale))
+                except:
+                    print("out of bounds")
+        #         print(str((chunk_topleft[0]+x, chunk_topleft[1]+y)),end=" ")
+        # print("",end="| ")
         
         # the frame, which units are visible to cam
-        display_size = (self.size[0]*scale[0], self.size[1]*scale[1]) # first calculate whats visible, units -> pixels
+        display_size = self._scaled(self.size, scale) # first calculate whats visible, units -> pixels
         
-        self.image.blit(pygame.transform.scale(self._textures["default"], display_size), cam_on_map, (0, 0, display_size[0], display_size[1]))
+        # self.image.blit(pygame.transform.scale(self._textures["default"], display_size), self._scaled(cam_on_map, scale), (0, 0, display_size[0], display_size[1]))
+        
         self.rect = self.image.get_rect()
 
 def move_direction(pos, direction_deg, distance) -> list:

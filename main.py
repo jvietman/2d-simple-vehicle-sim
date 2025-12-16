@@ -38,8 +38,8 @@ motor = engine(cur_engine["functions"], cur_engine["limits"], cur_engine["idle_r
 
 # setup renderer
 display = render(tuple(config["resolution"]))
-# display.add_object("map", map(display.size, "city_carpet.jpg", [400, 250], 80)) # main vehicle object
-display.add_object("map", map(display.size, "grid.png", [500, 250], 50)) # main vehicle object
+display.add_object("map", map(display.size, "city_carpet.jpg", [400, 250], 80)) # main vehicle object
+# display.add_object("map", map(display.size, "grid.png", [500, 250], 50)) # main vehicle object
 display.add_object("main", vehicle(display.size, os.getcwd()+"/vehicles/"+configs["session"]["vehicle"], [0, 0], 0)) # main vehicle object
 
 # mainloop handler values
@@ -104,7 +104,7 @@ pos = (0, 0)
 rotation = 0
 
 # setup
-display.cam_zoom = 30
+display.cam_zoom = 40
 display.cam_pos = [0, 0]
 
 # config
