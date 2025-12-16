@@ -52,17 +52,23 @@ Semi-realistic dynamic vehicle simulator in top-down 2D space.
 1. [X] Fix scaling (one zoom value)
     - [X] zoom for height, width scale automatically calculated
 2. [X] Fix object scaling
-    - [ ] vehicle size is not image size
+    - [X] vehicle size is not image size
 3. [X] Fix out of cam (relative pos of cam and position of car)
-4. [ ] obj class that others inherit
+4. [X] obj class that others inherit
     - vehicle
     - map
-5. [ ] map
+5. [X] map
     - [X] display map
-    - [ ] fix zooming and position  
-6. [ ] Fix rotation
+    - [X] fix zooming and position
+    - [X] chunks
+    - [ ] load from map files
+    - [ ] fix chunk scaling
+6. [X] Fix rotation
 7. [X] Basic movement
-8. [ ] Advanced movement (front wheels steering and driving)
+8. [ ] clean up code
+9. [ ] do fixes
+10. [ ] Texture class for rendering: Saves the texture and last size, prevents useless resizing the whole time
+11. [ ] Advanced movement (front wheels steering and driving)
 
 ### Performance fixes
 - graph printing
@@ -80,16 +86,19 @@ Semi-realistic dynamic vehicle simulator in top-down 2D space.
     => try minimizing physics lag so it doesnt even happen
     => make async or whatever (idk)
     --> FIXED! update accumulated time in the loop so it knows if it did all the calculations it had to do
-- [ ] on too low fps, fps is inaccurate
-    => try implementing check, if taking too long to generate 0.2, then just print 1 second fps
-- [ ] get events all the time, dont miss events because you calculate some bs
+- [X] get events all the time, dont miss events because you calculate some bs
     => async events.get()?
-- [ ] rendering problem
+- [X] rendering problem
     - how do sprites work?
     - what is the order all the things are executed?
     - fix code in mainloop, check objects list etc
-- [ ] render car object in middle
+- [ ] on too low fps, fps is inaccurate
+    => try implementing check, if taking too long to generate 0.2, then just print 1 second fps
+- [ ] render car object in middle, not top left
 - [ ] blit all objects (except map) on one surface
+- [ ] map chunk scaling wrong:
+    - if units same as pixels of image, it works
+    - if units different than pixels, then scaling is for some reason wrong
 
 ### Update Revs
 How do the revs update? How do they increase and decrease over time with certain inputs?

@@ -1,0 +1,5 @@
+{
+    "texture": "grid.png",
+    "size": [1000, 500],
+    "chunksize": 50
+}

@@ -36,11 +36,15 @@ cur_engine = configs["engines"][vehicledata["engine"]]
 cur_trans = configs["transmissions"][vehicledata["transmission"]]
 motor = engine(cur_engine["functions"], cur_engine["limits"], cur_engine["idle_revs"], cur_engine["resistance"])
 
+# load map
+with open("maps/"+configs["session"]["map"]+"/map.json", "r") as f:
+    mapdata = json.load(f)
+    f.close()
+
 # setup renderer
 display = render(tuple(config["resolution"]))
-display.add_object("map", map(display.size, "city_carpet.jpg", [400, 250], 80)) # main vehicle object
-# display.add_object("map", map(display.size, "grid.png", [500, 250], 50)) # main vehicle object
-display.add_object("main", vehicle(display.size, os.getcwd()+"/vehicles/"+configs["session"]["vehicle"], [0, 0], 0)) # main vehicle object
+display.add_object("map", map(display.size, "maps/"+configs["session"]["map"]+"/"+mapdata["texture"], mapdata["size"], mapdata["chunksize"])) # map object
+display.add_object("main", vehicle(display.size, os.getcwd()+"/vehicles/"+configs["session"]["vehicle"], [0, 0], 0)) # "main", vehicle object
 
 # mainloop handler values
 acc = 0

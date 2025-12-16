@@ -1,0 +1,5 @@
+{
+    "texture": "map.jpg",
+    "size": [300, 200],
+    "chunksize": 80
+}

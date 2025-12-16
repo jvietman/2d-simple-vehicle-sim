@@ -97,21 +97,22 @@ class map(obj):
         """
         # super class constructor
         obj.__init__(self, win_resolution, {"default": maptexture}, [0, 0], size, 0)
+        t = self._textures["default"]
         
         # split into chunks
         self.chunksize = chunksize
         self.tolerance = tolerance
-        chunksize_in_pixels = max(win_resolution[0]/(size[0]/chunksize), win_resolution[1]/(size[1]/chunksize))
+        chunksize_in_pixels = (win_resolution[0]/(size[0]/chunksize), win_resolution[1]/(size[1]/chunksize))
         print(chunksize_in_pixels)
         chunkamount = (round(size[0]/chunksize), round(size[1]/chunksize)) # amount fitting into width and height
         self.chunks = []
         # create surfaces for each chunk
-        for y in range(chunkamount[1]):
+        for y in range(chunkamount[1]+1):
             self.chunks.append([])
-            for x in range(chunkamount[0]):
+            for x in range(chunkamount[0]+1):
                 # crop track to fit chunk
-                self.chunks[-1].append(pygame.Surface((chunksize_in_pixels, chunksize_in_pixels)))
-                self.chunks[-1][-1].blit(self._textures["default"], (-(chunksize_in_pixels*x), -(chunksize_in_pixels*y)))
+                self.chunks[-1].append(pygame.Surface(chunksize_in_pixels, pygame.SRCALPHA))
+                self.chunks[-1][-1].blit(self._textures["default"], (-(chunksize_in_pixels[0]*x), -(chunksize_in_pixels[1]*y)))
 
     def update(self, size: tuple, pos: tuple, scale: tuple):
         """Render map pos and size on screen.\n
