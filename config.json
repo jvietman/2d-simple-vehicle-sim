@@ -1,5 +1,5 @@
 {
-    "resolution": [1000, 500], 
+    "resolution": [1920, 1080], 
 
     "binds": {
         "throttle_100": 102,

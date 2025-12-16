@@ -103,7 +103,6 @@ class map(obj):
         self.chunksize = chunksize
         self.tolerance = tolerance
         chunksize_in_pixels = (win_resolution[0]/(size[0]/chunksize), win_resolution[1]/(size[1]/chunksize))
-        print(chunksize_in_pixels)
         chunkamount = (round(size[0]/chunksize), round(size[1]/chunksize)) # amount fitting into width and height
         self.chunks = []
         # create surfaces for each chunk

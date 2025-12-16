@@ -68,7 +68,12 @@ Semi-realistic dynamic vehicle simulator in top-down 2D space.
 8. [ ] clean up code
 9. [ ] do fixes
 10. [ ] Texture class for rendering: Saves the texture and last size, prevents useless resizing the whole time
-11. [ ] Advanced movement (front wheels steering and driving)
+11. [ ] Advanced movement
+    - [ ] realistic turning (with front wheels)
+    - [ ] acceleration from engine
+        - [ ] transmission gears & ratio
+        - [ ] clutch
+    - [ ] braking
 
 ### Performance fixes
 - graph printing

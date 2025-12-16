@@ -108,12 +108,13 @@ pos = (0, 0)
 rotation = 0
 
 # setup
-display.cam_zoom = 40
+defaultzoom = 40
 display.cam_pos = [0, 0]
 
 # config
-turnspeed = 0.5
+topspeed = 0.48
 reversespeed = 0.05
+turnspeed = 0.5
 accel = 0.0015
 decel = 0.0003
 brakeforce = 0.0016
@@ -179,8 +180,11 @@ try:
                     speed = -reversespeed*brake
                 else:
                     speed = 0
+            if speed > topspeed:
+                speed = topspeed
             
             pos, rotation = display.move_object_straight("main", speed), display.rotate_object("main", turnspeed*steer)
+            display.cam_zoom = defaultzoom+speed*200
             display.cam_pos = pos
             
             actions += 1
