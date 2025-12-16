@@ -78,7 +78,7 @@ class vehicle(obj):
         obj.__init__(self, win_resolution, self.data["textures"], pos, (self.data["width"], self.data["length"]), rotation)
 
 class map(obj):
-    def __init__(self, win_resolution: tuple, maptexture: str, size: list):
+    def __init__(self, win_resolution: tuple, maptexture: str, size: list, chunksize: int):
         """Child-class of obj specifically for displaying a map.
         
         The center of the map is the origin, meaning x,y = 0.\n
@@ -92,6 +92,18 @@ class map(obj):
         # super class constructor
         obj.__init__(self, win_resolution, {"default": maptexture}, [0, 0], size, 0)
         
+        # split into chunks
+        self.chunksize = chunksize
+        chunkamount = (round(size[0]/chunksize), round(size[1]/chunksize)) # amount fitting into width and height
+        self.chunks = []
+        # create surfaces for each chunk
+        for i in range(chunkamount[1]):
+            self.chunks.append([])
+            for j in range(chunkamount[0]):
+                # crop track to fit chunk
+                self.chunks[-1].append(pygame.Surface((chunksize, chunksize)))
+                self.chunks[-1][-1].blit(self._textures["default"], (chunksize*j, chunksize*i))
+        
     def update(self, size: tuple, pos: tuple, scale: tuple):
         """Render map pos and size on screen.\n
 
@@ -101,12 +113,22 @@ class map(obj):
             scale (tuple): x and y scale from camera zoom (units -> pixels)
         """
         
-        self.image = pygame.Surface(self.res, pygame.SRCALPHA)
+        # reset surface to blit on
+        self.image = pygame.Surface(self.res)
+        
         # value that gets subtracted from the positions to match the rules of the map (center origin)
         # left side = +x & right side = -x
         # top side = +y & bottom side = -y
         # center (origin) of map, where x,y = 0: x = width/2 & y = height/2
         origin = (self.size[0]/2, self.size[1]/2)
+        
+        # get chunks that are visible
+        chunk_topleft = ((pos[0]-origin[0])/self.chunksize, (pos[1]-origin[1])/self.chunksize)
+        chunk_bottomright = (int(chunk_topleft[0]+pos[0]/self.chunksize), int(chunk_topleft[1]+pos[1]/self.chunksize))
+        chunk_topleft = (int(chunk_topleft[0]), int(chunk_topleft[1]))
+        print(str(chunk_topleft)+" "+str(chunk_bottomright))
+        
+        # blit chunks on surface
         
         # camera position on map from origin
         cam_on_map = ((-pos[0]-origin[0]+size[0]/2)*scale[0], (-pos[1]-origin[1]+size[1]/2)*scale[1])

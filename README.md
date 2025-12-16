@@ -88,6 +88,8 @@ Semi-realistic dynamic vehicle simulator in top-down 2D space.
     - how do sprites work?
     - what is the order all the things are executed?
     - fix code in mainloop, check objects list etc
+- [ ] render car object in middle
+- [ ] blit all objects (except map) on one surface
 
 ### Update Revs
 How do the revs update? How do they increase and decrease over time with certain inputs?
