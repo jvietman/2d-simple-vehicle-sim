@@ -100,10 +100,10 @@ Semi-realistic dynamic vehicle simulator in top-down 2D space.
 - [ ] on too low fps, fps is inaccurate
     => try implementing check, if taking too long to generate 0.2, then just print 1 second fps
 - [ ] render car object in middle, not top left
-- [ ] blit all objects (except map) on one surface
 - [ ] map chunk scaling wrong:
     - if units same as pixels of image, it works
     - if units different than pixels, then scaling is for some reason wrong
+- [ ] blit all objects on one surface
 
 ### Update Revs
 How do the revs update? How do they increase and decrease over time with certain inputs?

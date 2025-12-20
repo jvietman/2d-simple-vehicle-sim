@@ -70,14 +70,12 @@ def run_eventhandler(events_list: list, in_async = False):
             # if key was down or up <=> if key was pressed
             smth_happened = True if i.type == pygame.KEYDOWN or i.type == pygame.KEYUP else False
             if smth_happened:
-                if config["debug_binds"]: # if debugging is on, print key code and state
-                    print("Key: "+str(i.__dict__["key"])+"   State: "+str(i.type == pygame.KEYDOWN))
                 if i.__dict__["key"] in binds:
                     # get the event you bound the key to, then set the state of event
                     events[binds[i.__dict__["key"]]] = i.type == pygame.KEYDOWN
 
 # testing values
-throttle = brake = 0
+brake = 0
 
 now = now_second = datetime.now()
 try:
@@ -93,18 +91,18 @@ try:
         while acc >= dt:
             # controls module
             if events["throttle_100"]:
-                throttle = 1
+                motor.throttle = 1
             elif events["throttle_50"]:
-                throttle = 0.7
+                motor.throttle = 0.7
             elif events["brake_50"]:
-                throttle = 0.5
+                motor.throttle = 0.5
             elif events["brake_100"]:
-                throttle = 0.2
+                motor.throttle = 0.2
             else:
-                throttle = 0
+                motor.throttle = 0
             
             # physics module calculations
-            motor.update_revs(throttle, 0.6)
+            motor.update_revs(0.9)
             # when braking: motor.update_revs(1, x), x is resistance coming from braking
 
             actions += 1

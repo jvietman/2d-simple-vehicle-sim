@@ -69,8 +69,6 @@ def run_eventhandler(events_list: list, in_async = False):
             # if key was down or up <=> if key was pressed
             smth_happened = True if i.type == pygame.KEYDOWN or i.type == pygame.KEYUP else False
             if smth_happened:
-                if config["debug_binds"]: # if debugging is on, print key code and state
-                    print("Key: "+str(i.__dict__["key"])+"   State: "+str(i.type == pygame.KEYDOWN))
                 if i.__dict__["key"] in binds:
                     # get the event you bound the key to, then set the state of event
                     events[binds[i.__dict__["key"]]] = i.type == pygame.KEYDOWN

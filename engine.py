@@ -44,14 +44,13 @@ class engine:
         return eval(self._graphs[f].replace("x", str(x)))
     
     # depricated, this is for rising or falling revs
-    def update_revs(self, resistance: float):
+    def update_revs(self, resistance: int):
         """Update current engine revs and torque output based on throttle and evironmental effects (downforce, windresistance, grip).
 
         No values returned, they are directly set to ```self.revs``` and ```self.torque```.
 
         Args:
-            throttle (float): Throttle in percentage
-            resistance (float): Environmental effects
+            resistance (float): Environmental resistance/ forces acting on the car, like downforce, windresistance, g-forces etc.
         """
 
         throttle = self.throttle
@@ -66,7 +65,7 @@ class engine:
         # engine resistance
         # reving up = more resistance (also based of torque) = engine braking
         # reving down (towards idle), if no resistance, slowly go towards idle revs, decelerating
-        revs -= (revs*(1-self._res_eng))
+        revs -= (revs*(1-self._res_eng)) # temporary solution
         
         # environmental resistance (mass/ downforce, drag, grip, etc.)
         # accelerates and decelerates vehicle **momentum**.
@@ -85,6 +84,13 @@ class engine:
         # env_res = (resistance/self.torque)*max_reached
         # print(env_res)
         # revs *= 0.1
+        
+        # temporary solution
+        env_res = 1-resistance
+        if revs < 0:
+            revs *= env_res*(env_res*3) # keeping revs up
+        else:
+            revs *= env_res
         
         self.revs += revs
         if self.revs < 0: self.revs = 0

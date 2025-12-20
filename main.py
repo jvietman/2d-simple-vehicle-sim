@@ -3,6 +3,7 @@ from engine import engine
 from render import render, vehicle, map
 from datetime import datetime
 from typing import final
+from objects import *
 import threading, pygame, json, os
 
 # load configs
@@ -117,7 +118,7 @@ reversespeed = 0.05
 turnspeed = 0.5
 accel = 0.0015
 decel = 0.0003
-brakeforce = 0.0016
+brakeforce = 0.27
 ### end of testing values ###
 
 now = now_second = datetime.now()
@@ -162,7 +163,8 @@ try:
             ## calculate resistence with physics module (breaking, environmental factors)
             ## when braking: motor.update_revs(1, x), x is resistance coming from braking
             # calculate engine revs
-            motor.update_revs(0)
+            motor.update_revs(0.9+brakeforce*brake) # FIX BREAKING (engine class)
+            speed = motor.revs/13542 # high resistance for one big gear with high ratio = higher topspeeds & realistic acceleration
             # calculate actual output (through transmission, with all resistences)
             ## motor.transmission method to be implemented
             
@@ -171,10 +173,6 @@ try:
             ## state = sim.next(motor)
             if motor.throttle:
                 speed += accel*motor.throttle
-            elif brake and speed > 0:
-                speed -= brakeforce*brake
-            elif speed > 0:
-                speed -= decel
             if not speed > 0 and not motor.throttle:
                 if brake:
                     speed = -reversespeed*brake
